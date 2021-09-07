@@ -11,7 +11,7 @@ func TestLetStatement(t *testing.T) {
 	l := lexer.New(input)
 	p := New(l)
 
-	program := p.parseProgram()
+	program := p.ParseProgram()
 	if program == nil {
 		t.Fatal("Could not parse program")
 	}
@@ -36,7 +36,7 @@ func TestReturnStatement(t *testing.T) {
 	input := "return 5;"
 	l := lexer.New(input)
 	p := New(l)
-	program := p.parseProgram()
+	program := p.ParseProgram()
 
 	if program == nil {
 		t.Fatal("Could not parse program")
@@ -54,7 +54,7 @@ func TestReturnStatement(t *testing.T) {
 
 func TestParsingError(t *testing.T) {
 	p := New(lexer.New("let x"))
-	p.parseProgram()
+	p.ParseProgram()
 
 	if p.noErrors() {
 		t.Fatal("Expected parser errors but no errors were found")
@@ -68,7 +68,7 @@ func TestIdentifierExpression(t *testing.T) {
 	input := "foobar;"
 	l := lexer.New(input)
 	p := New(l)
-	program := p.parseProgram()
+	program := p.ParseProgram()
 	if len(program.Statements) != 1 {
 		t.Fatalf("program has not enough statements. got=%d", len(program.Statements))
 	}
@@ -94,7 +94,7 @@ func TestIntegerLiteralIdentifier(t *testing.T) {
 	input := "1;"
 	l := lexer.New(input)
 	p := New(l)
-	program := p.parseProgram()
+	program := p.ParseProgram()
 	literal, _ := program.Statements[0].(*ast.ExpressionStatement).Expression.(*ast.IntegerLiteral)
 	if literal.Value != 1 {
 		t.Errorf("literal.Value not %d. got=%d", 5, literal.Value)
@@ -108,7 +108,7 @@ func TestParsingBangPrefixExpression(t *testing.T) {
 	input := "!5;"
 	l := lexer.New(input)
 	p := New(l)
-	program := p.parseProgram()
+	program := p.ParseProgram()
 	exp, _ := program.Statements[0].(*ast.ExpressionStatement).Expression.(*ast.PrefixExpression)
 	if exp.Operator != "!" {
 		t.Fatalf("exp.Operator is not '!'. got=%s", exp.Operator)
@@ -123,7 +123,7 @@ func TestParsingMinusPrefixExpression(t *testing.T) {
 	input := "-5;"
 	l := lexer.New(input)
 	p := New(l)
-	program := p.parseProgram()
+	program := p.ParseProgram()
 	exp, _ := program.Statements[0].(*ast.ExpressionStatement).Expression.(*ast.PrefixExpression)
 	if exp.Operator != "-" {
 		t.Fatalf("exp.Operator is not '-'. got=%s", exp.Operator)
@@ -138,7 +138,7 @@ func TestParsingPlusInfixExpression(t *testing.T) {
 	input := "5 + 5;"
 	l := lexer.New(input)
 	p := New(l)
-	program := p.parseProgram()
+	program := p.ParseProgram()
 
 	infix, _ := program.Statements[0].(*ast.ExpressionStatement).Expression.(*ast.InfixExpression)
 	left := infix.Left.(*ast.IntegerLiteral)
@@ -159,7 +159,7 @@ func TestPrecedence(t *testing.T) {
 	input := "-a * b"
 	l := lexer.New(input)
 	p := New(l)
-	program := p.parseProgram()
+	program := p.ParseProgram()
 	asString := program.String()
 	if asString != "((-a) * b)" {
 		t.Errorf("expected=((-a) * b), got=%q", asString)
@@ -170,7 +170,7 @@ func TestPrecedenceWithParentheses(t *testing.T) {
 	input := "(5 + 5) * 2;"
 	l := lexer.New(input)
 	p := New(l)
-	program := p.parseProgram()
+	program := p.ParseProgram()
 	asString := program.String()
 	if asString != "((5 + 5) * 2)" {
 		t.Errorf("expected=((5 + 5) * 2), got=%q", asString)
@@ -181,7 +181,7 @@ func TestBooleanLiteral(t *testing.T) {
 	input := "true;"
 	l := lexer.New(input)
 	p := New(l)
-	program := p.parseProgram()
+	program := p.ParseProgram()
 	b, _ := program.Statements[0].(*ast.ExpressionStatement).Expression.(*ast.BooleanLiteral)
 	if !b.Value {
 		t.Errorf("expected true but got false")
@@ -192,7 +192,7 @@ func TestIfExpression(t *testing.T) {
 	input := "if (x < y) {x}"
 	l := lexer.New(input)
 	p := New(l)
-	program := p.parseProgram()
+	program := p.ParseProgram()
 	ifExp, _ := program.Statements[0].(*ast.ExpressionStatement).Expression.(*ast.IfExpression)
 	condition, _ := ifExp.Condition.(*ast.InfixExpression)
 	if condition.Operator != "<" {
@@ -208,7 +208,7 @@ func TestIfElseExpression(t *testing.T) {
 	input := "if (x < y) {x} else {y}"
 	l := lexer.New(input)
 	p := New(l)
-	program := p.parseProgram()
+	program := p.ParseProgram()
 	ifExp, _ := program.Statements[0].(*ast.ExpressionStatement).Expression.(*ast.IfExpression)
 	alt := ifExp.Alternative
 	if len(alt.Statements) != 1 {
@@ -220,7 +220,7 @@ func TestFunctionLiteral(t *testing.T) {
 	input := `fn(x, y) { x + y; }`
 	l := lexer.New(input)
 	p := New(l)
-	program := p.parseProgram()
+	program := p.ParseProgram()
 	functionLiteral, _ := program.Statements[0].(*ast.ExpressionStatement).Expression.(*ast.FunctionLiteral)
 
 	if len(functionLiteral.Parameters) != 2 {
@@ -237,7 +237,7 @@ func TestCallExpression(t *testing.T) {
 	input := "add(1, 2 * 3, 4 + 5);"
 	l := lexer.New(input)
 	p := New(l)
-	program := p.parseProgram()
+	program := p.ParseProgram()
 
 	callExpr, _ := program.Statements[0].(*ast.ExpressionStatement).Expression.(*ast.CallExpression)
 	functionIdent, _ := callExpr.Function.(*ast.Identifier)

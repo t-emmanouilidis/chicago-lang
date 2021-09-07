@@ -1,6 +1,7 @@
 package parser
 
 import (
+	"bytes"
 	"fmt"
 	"io/aegis/chicago/ast"
 	"io/aegis/chicago/lexer"
@@ -86,7 +87,7 @@ func (p *Parser) registerInfix(tokenType token.TokenType, fn infixParseFn) {
 	p.infixParseFns[tokenType] = fn
 }
 
-func (p *Parser) parseProgram() *ast.Program {
+func (p *Parser) ParseProgram() *ast.Program {
 	program := &ast.Program{}
 	program.Statements = []ast.Statement{}
 
@@ -389,16 +390,25 @@ func (p *Parser) nextTokenIsOfType(t token.TokenType) bool {
 	return t == p.nextToken.Type
 }
 
+func (p *Parser) ErrorsAsString() string {
+	var out bytes.Buffer
+	for _, err := range p.errors {
+		out.WriteString(err)
+		out.WriteString("\n")
+	}
+	return out.String()
+}
+
 func (p *Parser) Errors() []string {
 	return p.errors
 }
 
-func (p *Parser) anyErrors() bool {
+func (p *Parser) AnyErrors() bool {
 	return len(p.errors) > 0
 }
 
 func (p *Parser) noErrors() bool {
-	return !p.anyErrors()
+	return !p.AnyErrors()
 }
 
 func (p *Parser) tokenTypeError(t token.TokenType) {

@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"io"
 	"io/aegis/chicago/lexer"
-	"io/aegis/chicago/token"
+	"io/aegis/chicago/parser"
 )
 
 const PROMPT = ">> "
@@ -23,9 +23,15 @@ func Start(in io.Reader, out io.Writer) {
 
 		line := scanner.Text()
 		l := lexer.New(line)
+		p := parser.New(l)
 
-		for tok := l.NextToken(); tok.Type != token.EOF; tok = l.NextToken() {
-			fmt.Fprintf(out, "%+v\n", tok)
+		program := p.ParseProgram()
+		if p.AnyErrors() {
+			io.WriteString(out, p.ErrorsAsString())
+			continue
 		}
+
+		io.WriteString(out, program.String())
+		io.WriteString(out, "\n")
 	}
 }
